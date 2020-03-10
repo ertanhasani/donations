@@ -18,6 +18,7 @@ namespace Donations.API.Test
         private Mock<IAuthenticationService> _authenticationService;
         private Mock<ILogger<AuthenticationController>> _logger;
         private readonly Credentials DefaultCredentials = new Credentials { Email = "email@test.com", Password = "some-password" };
+        private readonly RegisterUser DefaultRegisterUser = new RegisterUser { FullName = "John Doe", Email = "email@test.com", Password = "some-password" };
 
 
         [SetUp]
@@ -103,6 +104,45 @@ namespace Donations.API.Test
                 .ThrowsAsync(new Exception());
 
             var result = await _authenticationController.Logout();
+
+            Assert.AreEqual(StatusCodes.Status500InternalServerError, ((IStatusCodeActionResult)result).StatusCode);
+
+            _authenticationService.Verify();
+        }
+
+        [Test]
+        public async Task RegisterReturns204NoContentOnSuccess()
+        {
+            _authenticationService.Setup(p => p.Register(It.IsAny<RegisterUser>()))
+                .Returns(Task.CompletedTask);
+
+            var result = await _authenticationController.Register(DefaultRegisterUser);
+
+            Assert.AreEqual(StatusCodes.Status204NoContent, ((IStatusCodeActionResult)result).StatusCode);
+
+            _authenticationService.Verify();
+        }
+
+        [Test]
+        public async Task RegisterReturns400BadRequestWhenNoBodySent()
+        {
+            _authenticationService.Setup(p => p.Register(It.IsAny<RegisterUser>()))
+                .ThrowsAsync(new ArgumentException());
+
+            var result = await _authenticationController.Register(null);
+
+            Assert.AreEqual(StatusCodes.Status400BadRequest, ((IStatusCodeActionResult)result).StatusCode);
+
+            _authenticationService.Verify();
+        }
+
+        [Test]
+        public async Task RegisterReturns500InternalServerErrrorOnOtherExceptions()
+        {
+            _authenticationService.Setup(p => p.Register(It.IsAny<RegisterUser>()))
+                .ThrowsAsync(new Exception());
+
+            var result = await _authenticationController.Register(DefaultRegisterUser);
 
             Assert.AreEqual(StatusCodes.Status500InternalServerError, ((IStatusCodeActionResult)result).StatusCode);
 

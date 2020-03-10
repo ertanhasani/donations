@@ -1,11 +1,13 @@
 ﻿using Donations.Common.DTOs;
 using Donations.Common.Helpers;
 using Donations.Common.Interfaces;
+using Donations.Data.Enums;
 using Donations.Data.Interfaces;
 using Donations.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security;
@@ -52,6 +54,37 @@ namespace Donations.Common.Services
         public async Task Logout()
         {
             await _signInManager.SignOutAsync();
+        }
+
+        public async Task Register(RegisterUser registerUser)
+        {
+            Guard.NotNull(registerUser, nameof(registerUser));
+            Guard.StringNotEmpty(registerUser.FullName, nameof(registerUser.FullName));
+            Guard.StringNotEmpty(registerUser.Email, nameof(registerUser.Email));
+            Guard.StringNotEmpty(registerUser.Password, nameof(registerUser.Password));
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = registerUser.FullName,
+                Email = registerUser.Email,
+                UserName = registerUser.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, registerUser.Password);
+            if (!result.Succeeded)
+            {
+                throw new Exception($"Error: `{JsonConvert.SerializeObject(result.Errors)}` while trying to register user: `{JsonConvert.SerializeObject(registerUser)}`.");
+            }
+
+            var roleName = Enum.GetName(typeof(UserRole), UserRole.User);
+
+            var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+            if (!roleResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(user);
+                throw new Exception($"Error: `{JsonConvert.SerializeObject(roleResult.Errors)}` adding role `{roleName}` to user: '{user.Id}'.");
+            }
         }
 
         private string GenerateToken(Guid userId)
