@@ -1,5 +1,6 @@
 ﻿using Donations.Common.DTOs;
 using Donations.Common.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,24 @@ namespace Donations.API.Controllers
             {
                 _logger.LogError(ex, ex.Message);
                 return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("Logout")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                await _authenticationService.Logout();
+                return Ok();
             }
             catch (Exception ex)
             {

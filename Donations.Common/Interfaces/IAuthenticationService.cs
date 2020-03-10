@@ -6,5 +6,6 @@ namespace Donations.Common.Interfaces
     public interface IAuthenticationService
     {
         Task<string> Login(Credentials credentials);
+        Task Logout();
     }
 }

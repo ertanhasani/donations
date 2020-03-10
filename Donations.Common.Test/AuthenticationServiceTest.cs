@@ -101,5 +101,16 @@ namespace Donations.Common.Test
             _signInManager.Verify(p => p.PasswordSignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
             _userManager.Verify(p => p.FindByEmailAsync(It.IsAny<string>()), Times.Once);
         }
+
+        [Test]
+        public async Task LogoutOnSuccess()
+        {
+            _signInManager.Setup(p => p.SignOutAsync())
+                .Returns(Task.CompletedTask);
+
+            await _authenticationService.Logout();
+
+            _signInManager.Setup(p => p.SignOutAsync());
+        }
     }
 }
