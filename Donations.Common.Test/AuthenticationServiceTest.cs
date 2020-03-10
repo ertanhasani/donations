@@ -21,6 +21,7 @@ namespace Donations.Common.Test
         private Mock<IConfiguration> _configuration;
         private AuthenticationService _authenticationService;
         private readonly Credentials DefaultCredentials = new Credentials { Email = "email@test.com", Password = "some-password" };
+        private readonly RegisterUser DefaultRegisterUser = new RegisterUser { FullName = "John Doe", Email = "email@test.com", Password = "some-password" };
 
         [SetUp]
         public void Setup()
@@ -111,6 +112,103 @@ namespace Donations.Common.Test
             await _authenticationService.Logout();
 
             _signInManager.Setup(p => p.SignOutAsync());
+        }
+
+        [Test]
+        public void RegisterThrowsArgumentNullExceptionWhenSendingNullData()
+        {
+            Assert.ThrowsAsync<ArgumentNullException>(async () =>
+                await _authenticationService.Register(null));
+
+            _userManager.Verify(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.DeleteAsync(It.IsAny<User>()), Times.Never);
+        }
+
+        [Test]
+        public void RegisterThrowsArgumentExceptionWhenFullNameIsNullOrEmpty()
+        {
+            var registerUser = new RegisterUser { FullName = String.Empty, Email = "email@test.com", Password = "some-password" };
+
+            Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _authenticationService.Register(registerUser));
+
+            _userManager.Verify(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.DeleteAsync(It.IsAny<User>()), Times.Never);
+        }
+
+        [Test]
+        public void RegisterThrowsArgumentExceptionWhenEmailIsNullOrEmpty()
+        {
+            var registerUser = new RegisterUser { FullName = "John Doe", Email = String.Empty, Password = "some-password" };
+
+            Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _authenticationService.Register(registerUser));
+
+            _userManager.Verify(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.DeleteAsync(It.IsAny<User>()), Times.Never);
+        }
+
+        [Test]
+        public void RegisterThrowsArgumentExceptionWhenPassowrdIsNullOrEmpty()
+        {
+            var registerUser = new RegisterUser { FullName = "John Doe", Email = "email@test.com", Password = String.Empty };
+
+            Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _authenticationService.Register(registerUser));
+
+            _userManager.Verify(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.DeleteAsync(It.IsAny<User>()), Times.Never);
+        }
+
+        [Test]
+        public void RegisterThrowsExceptionWhenFailsToCreateUser()
+        {
+            _userManager.Setup(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(IdentityResult.Failed()));
+
+            Assert.ThrowsAsync<Exception>(async () =>
+                await _authenticationService.Register(DefaultRegisterUser));
+
+            _userManager.Verify(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+            _userManager.Verify(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _userManager.Verify(p => p.DeleteAsync(It.IsAny<User>()), Times.Never);
+        }
+
+        [Test]
+        public void RegisterThrowsExceptionWhenFailsToAddUserInRole()
+        {
+            _userManager.Setup(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(IdentityResult.Success));
+
+            _userManager.Setup(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(IdentityResult.Failed()));
+
+            Assert.ThrowsAsync<Exception>(async () =>
+                await _authenticationService.Register(DefaultRegisterUser));
+
+            _userManager.Verify(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+            _userManager.Verify(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+            _userManager.Verify(p => p.DeleteAsync(It.IsAny<User>()), Times.Once);
+        }
+
+        [Test]
+        public async Task RegisterSuccess()
+        {
+            _userManager.Setup(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(IdentityResult.Success));
+
+            _userManager.Setup(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(IdentityResult.Success));
+
+            await _authenticationService.Register(DefaultRegisterUser);
+
+            _userManager.Verify(p => p.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+            _userManager.Verify(p => p.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+            _userManager.Verify(p => p.DeleteAsync(It.IsAny<User>()), Times.Never);
         }
     }
 }

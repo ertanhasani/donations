@@ -7,5 +7,6 @@ namespace Donations.Common.Interfaces
     {
         Task<string> Login(Credentials credentials);
         Task Logout();
+        Task Register(RegisterUser registerUser);
     }
 }
