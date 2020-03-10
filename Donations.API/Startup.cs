@@ -2,7 +2,9 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Donations.Common.Interfaces;
 using Donations.Common.Mapper;
+using Donations.Common.Services;
 using Donations.Data;
 using Donations.Data.Interfaces;
 using Donations.Data.Models;
@@ -105,6 +107,8 @@ namespace Donations.API
         private void ConfigureDI(IServiceCollection services)
         {
             services.AddTransient<IDonationsRepository, DonationsRepository>();
+
+            services.AddTransient<IAuthenticationService, AuthenticationService>();
         }
 
         private void ConfigureMapper(IServiceCollection services)
