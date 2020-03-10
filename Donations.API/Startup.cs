@@ -154,6 +154,8 @@ namespace Donations.API
 
             ConfigureCors(app);
 
+            ConfigureAuthentication(app);
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -176,6 +178,11 @@ namespace Donations.API
         private void ConfigureCors(IApplicationBuilder app)
         {
             app.UseCors();
+        }
+
+        private void ConfigureAuthentication(IApplicationBuilder app)
+        {
+            app.UseAuthentication();
         }
     }
 }
