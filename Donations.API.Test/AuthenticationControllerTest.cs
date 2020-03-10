@@ -82,5 +82,31 @@ namespace Donations.API.Test
 
             _authenticationService.Verify();
         }
+
+        [Test]
+        public async Task LogoutReturns200OkOnSuccess()
+        {
+            _authenticationService.Setup(p => p.Logout())
+                .Returns(Task.CompletedTask);
+
+            var result = await _authenticationController.Logout();
+
+            Assert.AreEqual(StatusCodes.Status200OK, ((IStatusCodeActionResult)result).StatusCode);
+
+            _authenticationService.Verify();
+        }
+
+        [Test]
+        public async Task LogoutReturns500InternalServerErrorOnException()
+        {
+            _authenticationService.Setup(p => p.Logout())
+                .ThrowsAsync(new Exception());
+
+            var result = await _authenticationController.Logout();
+
+            Assert.AreEqual(StatusCodes.Status500InternalServerError, ((IStatusCodeActionResult)result).StatusCode);
+
+            _authenticationService.Verify();
+        }
     }
 }

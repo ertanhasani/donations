@@ -49,6 +49,11 @@ namespace Donations.Common.Services
             return token;
         }
 
+        public async Task Logout()
+        {
+            await _signInManager.SignOutAsync();
+        }
+
         private string GenerateToken(Guid userId)
         {
             var key = Encoding.UTF8.GetBytes(_configuration["ApplicationSettings:JwtKey"]);
