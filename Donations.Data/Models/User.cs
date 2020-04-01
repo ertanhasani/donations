@@ -8,5 +8,8 @@ namespace Donations.Data.Models
     public class User : IdentityUser<Guid>
     {
         public string FullName { get; set; }
+        public Guid? AddressId { get; set; }
+
+        public virtual Address Address { get; set; }
     }
 }
