@@ -7,6 +7,8 @@ namespace Donations.Data
 {
     public class DonationsDbContext : IdentityDbContext<User, Role, Guid>
     {
+        public virtual DbSet<Address> Address { get; set; }
+
         public DonationsDbContext(DbContextOptions<DonationsDbContext> options)
             : base(options)
         { }
@@ -22,9 +24,37 @@ namespace Donations.Data
         {
             base.OnModelCreating(builder);
 
+            ConfigureAndSeedAddresses(builder);
+
             SeedRoles(builder);
 
-            SeedUsers(builder);
+            ConfigureAndSeedUsers(builder);
+        }
+
+        private void ConfigureAndSeedAddresses(ModelBuilder builder)
+        {
+            builder.Entity<Address>()
+                .HasKey(p => p.Id);
+
+            builder.Entity<Address>()
+                .Property(p => p.Street1)
+                .IsRequired();
+
+            builder.Entity<Address>()
+                .Property(p => p.City)
+                .IsRequired();
+
+            builder.Entity<Address>()
+                .Property(p => p.Country)
+                .IsRequired();
+
+            builder.Entity<Address>()
+                .Property(p => p.ZipCode)
+                .IsRequired()
+                .HasMaxLength(10);
+
+            SeedData(builder, Seeding.Addresses.AdminAddress);
+            SeedData(builder, Seeding.Addresses.UserAddress);
         }
 
         private void SeedRoles(ModelBuilder builder)
@@ -33,8 +63,14 @@ namespace Donations.Data
             SeedData(builder, Seeding.Roles.User);
         }
 
-        private void SeedUsers(ModelBuilder builder)
+        private void ConfigureAndSeedUsers(ModelBuilder builder)
         {
+            builder.Entity<User>()
+                .HasOne(p => p.Address)
+                .WithOne(p => p.User)
+                .HasForeignKey<User>(p => p.AddressId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             SeedData(builder, Seeding.Users.Administrator);
             SeedData(builder, Seeding.Users.User);
 

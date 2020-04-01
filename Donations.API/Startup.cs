@@ -60,7 +60,9 @@ namespace Donations.API
         private void ConfigureDontainsDbContext(IServiceCollection services)
         {
             services.AddDbContext<DonationsDbContext>(options
-                => options.UseSqlServer(Configuration["DonationsConnectionString"]));
+                => options.UseSqlServer(Configuration["DonationsConnectionString"])
+                        .EnableDetailedErrors()
+                        .EnableSensitiveDataLogging());
         }
 
         private void ConfigureMicrosoftIdentity(IServiceCollection services)
