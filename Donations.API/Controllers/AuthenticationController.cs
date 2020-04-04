@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace Donations.API.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class AuthenticationController : ControllerBase
     {
         private IAuthenticationService _authenticationService;
