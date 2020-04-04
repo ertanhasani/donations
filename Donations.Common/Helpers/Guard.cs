@@ -24,7 +24,7 @@ namespace Donations.Common.Helpers
         {
             if (string.IsNullOrWhiteSpace(value))
             {
-                throw new ArgumentException($"{value} is empty!");
+                throw new ArgumentException($"{fieldName} is empty!");
             }
         }
     }
